@@ -12,15 +12,26 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GameView {
 
   private static final String TAG = MainActivity.class.getSimpleName();
+
+  private GameController controller;
+  private GameModel model;
   private GridView boardGrid;
+  private BoardAdapter adapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+
+    // Get controller and model
+    controller = GameController.getInstance();
+    model = GameModel.getInstance();
+
+    // Register activity with game controller
+    controller.setView(this);
 
     // Display dimensions
     int displayWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
@@ -34,28 +45,56 @@ public class MainActivity extends AppCompatActivity {
     int boardWidth = displayWidth < displayHeight ? displayWidth : displayHeight - contentViewTop;
     boardWidth -= (int) (getResources().getDimension(R.dimen.app_margin) * 2 + 0.5f);
 
-    // Board GridView
+    // Board view
     boardGrid = new GridView(this);
+
+    // View parameters
     RelativeLayout.LayoutParams gridLayoutParams = new RelativeLayout.LayoutParams(
         boardWidth, boardWidth);
     gridLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
     boardGrid.setLayoutParams(gridLayoutParams);
-    boardGrid.setNumColumns(GameModel.GRID_SIZE);
+    boardGrid.setNumColumns(GameModel.DEFAULT_BOARD_SIZE);
     boardGrid.setHorizontalSpacing((int) getResources().getDimension(R.dimen.grid_spacing));
     boardGrid.setVerticalSpacing((int) getResources().getDimension(R.dimen.grid_spacing));
-    boardGrid.setAdapter(new BoardAdapter());
     boardGrid.setDrawSelectorOnTop(true); // enable ripple effect
     boardGrid.setSelector(R.drawable.circular_ripple);
+
+    // Grid adapter
+    adapter = new BoardAdapter();
+    boardGrid.setAdapter(adapter);
+
+    // Item click listener
     boardGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(TAG, "Item " + position);
-        view.setBackground(getDrawable(R.drawable.circle_a));
+        controller.onCellClick(position);
       }
     });
 
+    // Insert Board view into root layout
     RelativeLayout rootLayout = findViewById(R.id.root_layout);
     rootLayout.addView(boardGrid);
+
+    // If finished -- start new game
+    if (model.getStatus() == GameModel.STATUS_FINISHED) {
+      controller.startNewGame();
+    } else {
+      onGameStateUpdated();
+    }
+  }
+
+  @Override
+  protected void onDestroy() {
+    super.onDestroy();
+    // Checkout
+    controller.freeView();
+  }
+
+  @Override
+  public void onGameStateUpdated() {
+    adapter.setBoardState(GameModel.getInstance().getBoard());
+    adapter.notifyDataSetChanged();
   }
 
   /** Get status bar height + app bar height */
@@ -78,15 +117,27 @@ public class MainActivity extends AppCompatActivity {
   /** View adapter for board grid */
   private class BoardAdapter extends BaseAdapter {
 
+    private int[] boardState;
+
+    public void setBoardState(Board board) {
+      this.boardState = board.getState();
+    }
+
     /** How many items are in the data set represented by this Adapter */
     @Override
     public int getCount() {
-      return GameModel.GRID_SIZE * GameModel.GRID_SIZE;
+      if (boardState != null) {
+        return boardState.length;
+      }
+      return 0;
     }
 
     /** Get the data item associated with the specified position in the data set */
     @Override
     public Object getItem(int position) {
+      if (boardState != null) {
+        return boardState[position];
+      }
       return null;
     }
 
@@ -99,12 +150,28 @@ public class MainActivity extends AppCompatActivity {
     /** Get a View that displays the data at the specified position in the data set */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+      if (boardState == null) {
+        return null;
+      }
       if (convertView == null) {
         int viewSize = boardGrid.getColumnWidth();
         convertView = new View(MainActivity.this);
         convertView.setLayoutParams(new GridView.LayoutParams(viewSize, viewSize));
       }
-      convertView.setBackground(getDrawable(R.drawable.circle_0));
+      switch ((int) getItem(position)) {
+        case Board.CELL_EMPTY:
+          convertView.setBackground(getDrawable(R.drawable.circle_0));
+          break;
+        case Board.CELL_P1:
+          convertView.setBackground(getDrawable(R.drawable.circle_a));
+          break;
+        case Board.CELL_P2:
+          convertView.setBackground(getDrawable(R.drawable.circle_b));
+          break;
+        default:
+          Log.e(TAG, "Unknown cell state: " + getItem(position));
+          break;
+      }
       return convertView;
     }
   }
