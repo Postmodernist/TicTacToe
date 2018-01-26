@@ -5,33 +5,78 @@ package com.example.inok.tictactoe;
  */
 public class Board {
 
-  public static final int CELL_EMPTY = 0;
-  public static final int CELL_P1 = 1;
-  public static final int CELL_P2 = 2;
-
-  private int[] state;
+  private int size;
+  private Cell[] state;
 
   public Board() {
-    state = getDefaultState();
+    size = GameModel.DEFAULT_BOARD_SIZE;
+    state = createState(GameModel.DEFAULT_BOARD_SIZE);
   }
 
-  public Board(int[] state) {
-    this.state = state;
+  public int getSize() {
+    return size;
   }
 
-  public int[] getState() {
+  public void setSize(int size) {
+    this.size = size;
+  }
+
+  public Cell[] getState() {
     return state;
   }
 
-  public void setState(int[] state) {
+  public void setState(Cell[] state) {
     this.state = state;
   }
 
-  private int[] getDefaultState() {
-    int[] defaultState = new int[GameModel.DEFAULT_BOARD_SIZE * GameModel.DEFAULT_BOARD_SIZE];
-    for (int i = 0; i < defaultState.length; i++) {
-      defaultState[i] = CELL_EMPTY;
+  /**
+   * Get value of the cell at given position
+   */
+  public Cell getPosition(int position) {
+    if (position >= 0 && position < state.length) {
+      return state[position];
     }
-    return defaultState;
+    return Cell.INVALID;
+  }
+
+  /**
+   * Set value of the cell at given position
+   */
+  public boolean setPosition(Cell player, int position) {
+    if (position >= 0 && position < state.length && state[position] == Cell.EMPTY) {
+      state[position] = player;
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Check if board has at least one empty cell
+   */
+  public boolean hasEmptyCell() {
+    for (Cell cell : state) {
+      if (cell == Cell.EMPTY) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Create a new board state of given size with empty cells
+   */
+  private Cell[] createState(int size) {
+    Cell[] state = new Cell[size * size];
+    for (int i = 0; i < state.length; i++) {
+      state[i] = Cell.EMPTY;
+    }
+    return state;
+  }
+
+  /**
+   * Cell values
+   */
+  enum Cell {
+    INVALID, EMPTY, PLAYER_A, PLAYER_B
   }
 }

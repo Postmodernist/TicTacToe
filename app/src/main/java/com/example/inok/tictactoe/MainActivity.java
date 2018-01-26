@@ -12,10 +12,11 @@ import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
 
+import com.example.inok.tictactoe.Board.Cell;
+
 public class MainActivity extends AppCompatActivity implements GameView {
 
-  private static final String TAG = MainActivity.class.getSimpleName();
-
+  private static final String TAG = "TAG_GameView";
   private GameController controller;
   private GameModel model;
   private GridView boardGrid;
@@ -39,7 +40,6 @@ public class MainActivity extends AppCompatActivity implements GameView {
 
     // Status bar + app bar size
     int contentViewTop = getStatusAndAppBarSize();
-    Log.i(TAG, "Content view top: " + contentViewTop);
 
     // Board width including margins
     int boardWidth = displayWidth < displayHeight ? displayWidth : displayHeight - contentViewTop;
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
     boardGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(TAG, "Item " + position);
+        Log.d(TAG, "Click on cell " + position);
         controller.onCellClick(position);
       }
     });
@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
     rootLayout.addView(boardGrid);
 
     // If finished -- start new game
-    if (model.getStatus() == GameModel.STATUS_FINISHED) {
+    if (model.getStatus() == GameModel.Status.FINISHED) {
       controller.startNewGame();
     } else {
       onGameStateUpdated();
@@ -97,7 +97,9 @@ public class MainActivity extends AppCompatActivity implements GameView {
     adapter.notifyDataSetChanged();
   }
 
-  /** Get status bar height + app bar height */
+  /**
+   * Get status bar height + app bar height
+   */
   private int getStatusAndAppBarSize() {
     // Status bar height
     int statusBarHeight = 0;
@@ -114,16 +116,20 @@ public class MainActivity extends AppCompatActivity implements GameView {
     return statusBarHeight + appBarHeight;
   }
 
-  /** View adapter for board grid */
+  /**
+   * View adapter for board grid
+   */
   private class BoardAdapter extends BaseAdapter {
 
-    private int[] boardState;
+    private Cell[] boardState;
 
     public void setBoardState(Board board) {
       this.boardState = board.getState();
     }
 
-    /** How many items are in the data set represented by this Adapter */
+    /**
+     * How many items are in the data set represented by this Adapter
+     */
     @Override
     public int getCount() {
       if (boardState != null) {
@@ -132,7 +138,9 @@ public class MainActivity extends AppCompatActivity implements GameView {
       return 0;
     }
 
-    /** Get the data item associated with the specified position in the data set */
+    /**
+     * Get the data item associated with the specified position in the data set
+     */
     @Override
     public Object getItem(int position) {
       if (boardState != null) {
@@ -141,13 +149,17 @@ public class MainActivity extends AppCompatActivity implements GameView {
       return null;
     }
 
-    /** Get the row id associated with the specified position in the list */
+    /**
+     * Get the row id associated with the specified position in the list
+     */
     @Override
     public long getItemId(int position) {
       return 0;
     }
 
-    /** Get a View that displays the data at the specified position in the data set */
+    /**
+     * Get a View that displays the data at the specified position in the data set
+     */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
       if (boardState == null) {
@@ -158,18 +170,19 @@ public class MainActivity extends AppCompatActivity implements GameView {
         convertView = new View(MainActivity.this);
         convertView.setLayoutParams(new GridView.LayoutParams(viewSize, viewSize));
       }
-      switch ((int) getItem(position)) {
-        case Board.CELL_EMPTY:
+      Cell cell = (Cell) getItem(position);
+      switch (cell) {
+        case EMPTY:
           convertView.setBackground(getDrawable(R.drawable.circle_0));
           break;
-        case Board.CELL_P1:
+        case PLAYER_A:
           convertView.setBackground(getDrawable(R.drawable.circle_a));
           break;
-        case Board.CELL_P2:
+        case PLAYER_B:
           convertView.setBackground(getDrawable(R.drawable.circle_b));
           break;
         default:
-          Log.e(TAG, "Unknown cell state: " + getItem(position));
+          Log.e(TAG, "Unknown cell value: " + cell);
           break;
       }
       return convertView;
