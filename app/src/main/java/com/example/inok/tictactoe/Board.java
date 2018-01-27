@@ -8,17 +8,13 @@ public class Board {
   private int size;
   private Cell[] state;
 
-  public Board() {
-    size = GameModel.DEFAULT_BOARD_SIZE;
-    state = createState(GameModel.DEFAULT_BOARD_SIZE);
+  public Board(int size) {
+    this.size = size;
+    this.state = createState(size);
   }
 
   public int getSize() {
     return size;
-  }
-
-  public void setSize(int size) {
-    this.size = size;
   }
 
   public Cell[] getState() {

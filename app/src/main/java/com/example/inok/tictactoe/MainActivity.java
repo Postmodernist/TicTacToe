@@ -5,12 +5,15 @@ import android.content.res.TypedArray;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.example.inok.tictactoe.Board.Cell;
 
@@ -21,6 +24,8 @@ public class MainActivity extends AppCompatActivity implements GameView {
   private GameModel model;
   private GridView boardGrid;
   private BoardAdapter adapter;
+
+  // -----------------------------------------------------------------------------------------------
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +58,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
         boardWidth, boardWidth);
     gridLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
     boardGrid.setLayoutParams(gridLayoutParams);
-    boardGrid.setNumColumns(GameModel.DEFAULT_BOARD_SIZE);
+    boardGrid.setNumColumns(model.getBoardSize());
     boardGrid.setHorizontalSpacing((int) getResources().getDimension(R.dimen.grid_spacing));
     boardGrid.setVerticalSpacing((int) getResources().getDimension(R.dimen.grid_spacing));
     boardGrid.setDrawSelectorOnTop(true); // enable ripple effect
@@ -67,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
     boardGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(TAG, "Click on cell " + position);
+        Log.d(TAG, "Player move: " + position);
         controller.onCellClick(position);
       }
     });
@@ -92,10 +97,47 @@ public class MainActivity extends AppCompatActivity implements GameView {
   }
 
   @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    getMenuInflater().inflate(R.menu.main, menu);
+    return true;
+  }
+
+  @Override
+  public boolean onOptionsItemSelected(MenuItem item) {
+    switch (item.getItemId()) {
+      case R.id.new_game:
+        controller.startNewGame();
+        Toast.makeText(this, R.string.new_game_started, Toast.LENGTH_SHORT).show();
+        return true;
+      case R.id.board_size_3:
+        model.setBoardSize(3);
+        Toast.makeText(this, R.string.board_size_set_3, Toast.LENGTH_SHORT).show();
+        return true;
+      case R.id.board_size_4:
+        model.setBoardSize(4);
+        Toast.makeText(this, R.string.board_size_set_4, Toast.LENGTH_SHORT).show();
+        return true;
+      case R.id.board_size_5:
+        model.setBoardSize(5);
+        Toast.makeText(this, R.string.board_size_set_5, Toast.LENGTH_SHORT).show();
+        return true;
+      default:
+        return super.onOptionsItemSelected(item);
+    }
+  }
+
+  @Override
+  public void onBoardSizeChanged() {
+    boardGrid.setNumColumns(model.getBoardSize());
+  }
+
+  @Override
   public void onGameStateUpdated() {
-    adapter.setBoardState(GameModel.getInstance().getBoard());
+    adapter.setBoardState(model.getBoard());
     adapter.notifyDataSetChanged();
   }
+
+  // -----------------------------------------------------------------------------------------------
 
   /**
    * Get status bar height + app bar height
@@ -166,10 +208,10 @@ public class MainActivity extends AppCompatActivity implements GameView {
         return null;
       }
       if (convertView == null) {
-        int viewSize = boardGrid.getColumnWidth();
         convertView = new View(MainActivity.this);
-        convertView.setLayoutParams(new GridView.LayoutParams(viewSize, viewSize));
       }
+      int viewSize = boardGrid.getColumnWidth();
+      convertView.setLayoutParams(new GridView.LayoutParams(viewSize, viewSize));
       Cell cell = (Cell) getItem(position);
       switch (cell) {
         case EMPTY:

@@ -1,7 +1,19 @@
 <resources>
   <string name="app_name">TicTacToe</string>
+
+  <!-- Toast messages -->
   <string name="invalid_move">Invalid move</string>
   <string name="player_a_win">Blue player wins</string>
   <string name="player_b_win">Red player wins</string>
   <string name="game_draw">Game draw</string>
+  <string name="new_game_started">Started a new game</string>
+  <string name="board_size_set_3">Board size set to 3</string>
+  <string name="board_size_set_4">Board size set to 4</string>
+  <string name="board_size_set_5">Board size set to 5</string>
+
+  <!-- Menu -->
+  <string name="menu_new_game">New game</string>
+  <string name="menu_board_size_3">Board size 3</string>
+  <string name="menu_board_size_4">Board size 4</string>
+  <string name="menu_board_size_5">Board size 5</string>
 </resources>
