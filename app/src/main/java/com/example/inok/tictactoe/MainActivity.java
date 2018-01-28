@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(TAG, "Player move: " + position);
-        controller.onCellClick(position);
+        controller.onPlayerCellClick(position);
       }
     });
 
