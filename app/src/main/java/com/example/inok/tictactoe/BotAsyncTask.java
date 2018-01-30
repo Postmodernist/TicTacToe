@@ -5,7 +5,7 @@ import android.util.Log;
 
 public class BotAsyncTask extends AsyncTask<Void, Void, Integer> {
 
-  private static final String TAG = "TAG_Bot";
+  private static final String TAG = "TAG_" + BotAsyncTask.class.getSimpleName();
   private Bot bot;
   private GameModel model;
 
@@ -16,17 +16,12 @@ public class BotAsyncTask extends AsyncTask<Void, Void, Integer> {
 
   @Override
   protected Integer doInBackground(Void... voids) {
-    try {
-      Thread.sleep(1000);
-    } catch (InterruptedException e) {
-      Log.e(TAG, "InterruptedException: " + e.getMessage());
-    }
-    return bot.nextMove(model.getBoard());
+    return bot.nextMove(model.getBoard(), model.getPlayer());
   }
 
   @Override
   protected void onPostExecute(Integer position) {
     Log.d(TAG, "Bot move: " + position);
-    GameController.getInstance().onBotCellClick(position);
+    GameController.getInstance().onBotClick(position);
   }
 }

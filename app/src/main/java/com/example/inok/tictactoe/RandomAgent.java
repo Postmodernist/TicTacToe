@@ -1,9 +1,9 @@
 package com.example.inok.tictactoe;
 
-import com.example.inok.tictactoe.Board.Cell;
+import com.example.inok.tictactoe.mcts.Player;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Bot that makes random moves
@@ -11,20 +11,12 @@ import java.util.List;
 
 public class RandomAgent implements Bot {
 
-  @Override
-  public int nextMove(Board board) {
-    List<Integer> emptyPositions = getEmptyPositions(board.getState());
-    int index = (int) (Math.random() * emptyPositions.size());
-    return emptyPositions.get(index);
-  }
+  private Random rnd = new Random();
 
-  private List<Integer> getEmptyPositions(Cell[] cells) {
-    List<Integer> emptyPositions = new ArrayList<>();
-    for (int i = 0; i < cells.length; i++) {
-      if (cells[i] == Cell.EMPTY) {
-        emptyPositions.add(i);
-      }
-    }
-    return emptyPositions;
+  @Override
+  public int nextMove(Board board, Player player) {
+    List<Integer> emptyPositions = board.getEmptyPositions();
+    int index = rnd.nextInt(emptyPositions.size());
+    return emptyPositions.get(index);
   }
 }

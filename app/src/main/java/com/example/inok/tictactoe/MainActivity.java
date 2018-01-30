@@ -15,26 +15,20 @@ import android.widget.GridView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.example.inok.tictactoe.Board.Cell;
+import com.example.inok.tictactoe.mcts.Player;
 
 public class MainActivity extends AppCompatActivity implements GameView {
 
   private static final String TAG = "TAG_GameView";
-  private GameController controller;
-  private GameModel model;
+  private static final GameController controller = GameController.getInstance();
+  private static final GameModel model = GameModel.getInstance();
   private GridView boardGrid;
   private BoardAdapter adapter;
-
-  // -----------------------------------------------------------------------------------------------
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
-
-    // Get controller and model
-    controller = GameController.getInstance();
-    model = GameModel.getInstance();
 
     // Register activity with game controller
     controller.setView(this);
@@ -44,7 +38,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
     int displayHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
 
     // Status bar + app bar size
-    int contentViewTop = getStatusAndAppBarSize();
+    int contentViewTop = getStatusAndAppBarHeight();
 
     // Board width including margins
     int boardWidth = displayWidth < displayHeight ? displayWidth : displayHeight - contentViewTop;
@@ -73,7 +67,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(TAG, "Player move: " + position);
-        controller.onPlayerCellClick(position);
+        controller.onPlayerClick(position);
       }
     });
 
@@ -81,8 +75,8 @@ public class MainActivity extends AppCompatActivity implements GameView {
     RelativeLayout rootLayout = findViewById(R.id.root_layout);
     rootLayout.addView(boardGrid);
 
-    // If finished -- start new game
-    if (model.getStatus() == GameModel.Status.FINISHED) {
+    // If no current player -- start a new game
+    if (model.getPlayer() == Player.NONE) {
       controller.startNewGame();
     } else {
       onGameStateUpdated();
@@ -133,16 +127,14 @@ public class MainActivity extends AppCompatActivity implements GameView {
 
   @Override
   public void onGameStateUpdated() {
-    adapter.setBoardState(model.getBoard());
+    adapter.setBoard(model.getBoard());
     adapter.notifyDataSetChanged();
   }
-
-  // -----------------------------------------------------------------------------------------------
 
   /**
    * Get status bar height + app bar height
    */
-  private int getStatusAndAppBarSize() {
+  private int getStatusAndAppBarHeight() {
     // Status bar height
     int statusBarHeight = 0;
     int resourceId = getResources().getIdentifier("status_bar_height", "dimen",
@@ -163,10 +155,10 @@ public class MainActivity extends AppCompatActivity implements GameView {
    */
   private class BoardAdapter extends BaseAdapter {
 
-    private Cell[] boardState;
+    private Board board;
 
-    public void setBoardState(Board board) {
-      this.boardState = board.getState();
+    public void setBoard(Board board) {
+      this.board = board;
     }
 
     /**
@@ -174,8 +166,8 @@ public class MainActivity extends AppCompatActivity implements GameView {
      */
     @Override
     public int getCount() {
-      if (boardState != null) {
-        return boardState.length;
+      if (board != null) {
+        return board.getCells().length;
       }
       return 0;
     }
@@ -185,8 +177,8 @@ public class MainActivity extends AppCompatActivity implements GameView {
      */
     @Override
     public Object getItem(int position) {
-      if (boardState != null) {
-        return boardState[position];
+      if (board != null) {
+        return board.get(position);
       }
       return null;
     }
@@ -204,7 +196,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
      */
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-      if (boardState == null) {
+      if (board == null) {
         return null;
       }
       if (convertView == null) {
@@ -212,9 +204,9 @@ public class MainActivity extends AppCompatActivity implements GameView {
       }
       int viewSize = boardGrid.getColumnWidth();
       convertView.setLayoutParams(new GridView.LayoutParams(viewSize, viewSize));
-      Cell cell = (Cell) getItem(position);
+      Player cell = (Player) getItem(position);
       switch (cell) {
-        case EMPTY:
+        case NONE:
           convertView.setBackground(getDrawable(R.drawable.circle_0));
           break;
         case PLAYER_A:
