@@ -35,7 +35,7 @@ public class Uct {
     return bestChild;
   }
 
-  private static double uctScore(int parentVisitCount, Node node) {
+  public static double uctScore(int parentVisitCount, Node node) {
     int nodeWinScore = node.getWinScore();
     int nodeVisitCount = node.getVisitCount();
     if (nodeVisitCount == 0) {

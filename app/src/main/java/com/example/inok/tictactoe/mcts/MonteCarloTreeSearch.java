@@ -8,10 +8,9 @@ import com.example.inok.tictactoe.Board;
 public class MonteCarloTreeSearch {
 
   private static final String TAG = "TAG_" + MonteCarloTreeSearch.class.getSimpleName();
-  private static final int TIME_LIMIT = 2000;
+  private static final int TIME_LIMIT = 5000;
   private static final int WIN_SCORE = 1;
   private static final int LOSS_SCORE = -1;
-  private Player opponent;
   private Node root;
 
   /**
@@ -25,17 +24,16 @@ public class MonteCarloTreeSearch {
       Log.e(TAG, "Board is null");
       throw new NullPointerException();
     }
-    // Set opponent
-    opponent = player.getOpponent();
     // Setup tree
     if (root == null || (root = getChild(board)) == null) {
       // First time called or opponent made an unexplored move
-      root = new Node(board, opponent);
+      root = new Node(board, player.getOpponent());
     } else {
       // Root is made from child
       root.setParent(null);
     }
     // Explore tree
+    Logger.printDivider("Explore tree");
     Node promisingNode;
     Node nodeToExplore;
     Player winner;
@@ -56,8 +54,10 @@ public class MonteCarloTreeSearch {
       // Update
       backPropagation(nodeToExplore, winner);
     }
+    Logger.printChildren(root);
     // Select best move
     Node mostVisitedChild = root.getMostVisitedChild();
+    Logger.printDivider(null);
     if (mostVisitedChild == null) {
       // No moves available
       return Node.INVALID_MOVE;
@@ -73,9 +73,6 @@ public class MonteCarloTreeSearch {
    */
   @Nullable
   private Node getChild(Board board) {
-    if (root.hasChildren()) {
-      Log.d(TAG, "Root has " + root.getChildren().size() + " children");
-    }
     for (Node child : root.getChildren()) {
       if (child.getBoard().isEqual(board)) {
         return child;
@@ -108,14 +105,6 @@ public class MonteCarloTreeSearch {
    * Simulate random play and return a winner or Player.NONE in case of game draw
    */
   private Player randomRollOut(Node nodeToExplore) {
-    // Rule out nodes which lead to loss in one turn
-    if (nodeToExplore.getBoard().hasWinCondition() && nodeToExplore.getPlayer() == opponent) {
-      Node parent = nodeToExplore.getParent();
-      if (parent != null) {
-        parent.setWinScore(Integer.MIN_VALUE);
-      }
-      return opponent;
-    }
     // Random descent until hit leaf node
     Node node = new Node(nodeToExplore.getBoard(), nodeToExplore.getPlayer());
     while (!node.getBoard().hasWinCondition()) {
@@ -131,23 +120,13 @@ public class MonteCarloTreeSearch {
    * Propagate win score and visit count up the tree
    */
   private void backPropagation(Node nodeToExplore, Player player) {
-    if (player == Player.NONE) {
-      // Game draw, nothing changes
-      return;
-    }
-    Node node = nodeToExplore;
-    while (node != null) {
+    for (Node node = nodeToExplore; node != null; node = node.getParent()) {
       node.incrementVisitCount();
-      if (node.getWinScore() != Integer.MIN_VALUE) {
-        if (node.getPlayer() == player) {
-          node.addWinScore(WIN_SCORE);
-        } else if (node.getPlayer() == player.getOpponent()) {
-          node.addWinScore(LOSS_SCORE);
-        } else {
-          Log.e(TAG, "Encountered node with invalid player value");
-        }
+      if (node.getPlayer() == player) {
+        node.addWinScore(WIN_SCORE);
+      } else if (node.getPlayer() == player.getOpponent()) {
+        node.addWinScore(LOSS_SCORE);
       }
-      node = node.getParent();
     }
   }
 }

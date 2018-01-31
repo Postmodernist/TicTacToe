@@ -103,17 +103,17 @@ public class MainActivity extends AppCompatActivity implements GameView {
         controller.startNewGame();
         Toast.makeText(this, R.string.new_game_started, Toast.LENGTH_SHORT).show();
         return true;
-      case R.id.board_size_3:
-        model.setBoardSize(3);
-        Toast.makeText(this, R.string.board_size_set_3, Toast.LENGTH_SHORT).show();
-        return true;
-      case R.id.board_size_4:
-        model.setBoardSize(4);
-        Toast.makeText(this, R.string.board_size_set_4, Toast.LENGTH_SHORT).show();
-        return true;
-      case R.id.board_size_5:
+      case R.id.board_size_1:
         model.setBoardSize(5);
-        Toast.makeText(this, R.string.board_size_set_5, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.board_size_set_1, Toast.LENGTH_SHORT).show();
+        return true;
+      case R.id.board_size_2:
+        model.setBoardSize(6);
+        Toast.makeText(this, R.string.board_size_set_2, Toast.LENGTH_SHORT).show();
+        return true;
+      case R.id.board_size_3:
+        model.setBoardSize(7);
+        Toast.makeText(this, R.string.board_size_set_3, Toast.LENGTH_SHORT).show();
         return true;
       default:
         return super.onOptionsItemSelected(item);

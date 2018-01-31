@@ -15,7 +15,7 @@ import java.util.List;
 public class Board {
 
   private static final String TAG = "TAG_" + Board.class.getSimpleName();
-  public static final int IN_A_ROW = 3;
+  public static final int IN_A_ROW = 4;
   private int size;
   private Player[] cells;
 
@@ -50,7 +50,7 @@ public class Board {
   }
 
   public boolean set(Player player, int position) {
-    if (position >= 0 && position < cells.length && cells[position] == Player.NONE) {
+    if (isValidMove(position)) {
       cells[position] = player;
       return true;
     }
@@ -61,8 +61,8 @@ public class Board {
    * Check if board has at least one empty cell
    */
   public boolean hasEmptyCell() {
-    for (Player cell : cells) {
-      if (cell == Player.NONE) {
+    for (int i = 0; i < cells.length; i++) {
+      if (isValidMove(i)) {
         return true;
       }
     }
@@ -75,11 +75,36 @@ public class Board {
   public List<Integer> getEmptyPositions() {
     List<Integer> emptyPositions = new ArrayList<>();
     for (int i = 0; i < cells.length; i++) {
-      if (cells[i] == Player.NONE) {
+      if (isValidMove(i)) {
         emptyPositions.add(i);
       }
     }
     return emptyPositions;
+  }
+
+  public boolean isValidMove(int position) {
+    // Out of range
+    if (position < 0 || position >= cells.length) {
+      return false;
+    }
+    // Cell is not empty
+    if (cells[position] != Player.NONE) {
+      return false;
+    }
+    // Cell is next to the border
+    if (position < size || position >= cells.length - size || position % size == size - 1
+        || position % size == 0) {
+      return true;
+    }
+    // Has neighbor
+    int[] neighbors = {position - 1, position + 1, position - size, position + size,
+        position - size - 1, position - size + 1, position + size - 1, position + size + 1};
+    for (int i : neighbors) {
+      if (cells[i] != Player.NONE) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -89,11 +114,6 @@ public class Board {
     if (board == null) {
       return false;
     }
-
-//    Log.d(TAG, "Comparing:");
-//    Log.d(TAG, toString());
-//    Log.d(TAG, board.toString());
-
     if (size != board.size()) {
       return false;
     }
@@ -112,9 +132,19 @@ public class Board {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for (Player cell : cells) {
-      sb.append(cell).append(" | ");
+      switch (cell) {
+        case NONE:
+          sb.append(" . ");
+          break;
+        case PLAYER_A:
+          sb.append(" A ");
+          break;
+        case PLAYER_B:
+          sb.append(" B ");
+          break;
+      }
     }
-    return sb.substring(0, sb.length() - 3);
+    return sb.toString();
   }
 
   /**
