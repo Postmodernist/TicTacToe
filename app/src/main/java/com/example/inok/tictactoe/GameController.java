@@ -42,6 +42,7 @@ public class GameController {
     view.get().onBoardSizeChanged();
     view.get().onGameStateUpdated();
     if (model.getPlayer() == Player.PLAYER_B) {
+      view.get().showProgressBar(true);
       new BotAsyncTask(bot, model).execute();
     }
   }
@@ -59,6 +60,7 @@ public class GameController {
         }
         if (model.getPlayer() == Player.PLAYER_B) {
           // Pass turn to bot
+          view.get().showProgressBar(true);
           new BotAsyncTask(bot, model).execute();
         }
         break;
@@ -78,6 +80,7 @@ public class GameController {
    * Process bot click
    */
   public void onBotClick(int position) {
+    view.get().showProgressBar(false);
     if (model.makeMove(position)) {
       view.get().onGameStateUpdated();
     } else {
@@ -106,5 +109,10 @@ public class GameController {
         Log.e(TAG, "Unknown player");
         break;
     }
+  }
+
+  /** Update bot progress bar*/
+  public void onProgressUpdate(int progress) {
+    view.get().setProgressPercent(progress);
   }
 }

@@ -4,11 +4,12 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.inok.tictactoe.Board;
+import com.example.inok.tictactoe.GameController;
 
 public class MonteCarloTreeSearch {
 
   private static final String TAG = "TAG_" + MonteCarloTreeSearch.class.getSimpleName();
-  private static final int TIME_LIMIT = 5000;
+  private static final int TIME_LIMIT = 3000;
   private static final int WIN_SCORE = 1;
   private static final int LOSS_SCORE = -1;
   private Node root;
@@ -38,6 +39,10 @@ public class MonteCarloTreeSearch {
     Node nodeToExplore;
     Player winner;
     while (System.currentTimeMillis() < deadline) {
+      // Progress update
+      int progress = 100 - (int) ((deadline - System.currentTimeMillis()) * 100 / TIME_LIMIT);
+      GameController.getInstance().onProgressUpdate(progress);
+//      botAsyncTask.updateProgress(progress);
       // Selection
       promisingNode = getPromisingNode();
       // Expansion

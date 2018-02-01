@@ -12,10 +12,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.inok.tictactoe.mcts.Player;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements GameView {
 
@@ -24,11 +28,14 @@ public class MainActivity extends AppCompatActivity implements GameView {
   private static final GameModel model = GameModel.getInstance();
   private GridView boardGrid;
   private BoardAdapter adapter;
+  @BindView(R.id.root_layout) RelativeLayout rootLayout;
+  @BindView(R.id.progress_bar) ProgressBar progressBar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
+    ButterKnife.bind(this);
 
     // Register activity with game controller
     controller.setView(this);
@@ -72,14 +79,22 @@ public class MainActivity extends AppCompatActivity implements GameView {
     });
 
     // Insert Board view into root layout
-    RelativeLayout rootLayout = findViewById(R.id.root_layout);
     rootLayout.addView(boardGrid);
 
-    // If no current player -- start a new game
-    if (model.getPlayer() == Player.NONE) {
-      controller.startNewGame();
-    } else {
-      onGameStateUpdated();
+    switch (model.getPlayer()) {
+      case NONE:
+        // If no current player -- start a new game
+        controller.startNewGame();
+        break;
+      case PLAYER_A:
+        // Player's turn -- just update game state
+        onGameStateUpdated();
+        break;
+      case PLAYER_B:
+        // Bot is thinking -- show progress bar and update game state
+        progressBar.setVisibility(View.VISIBLE);
+        onGameStateUpdated();
+        break;
     }
   }
 
@@ -129,6 +144,20 @@ public class MainActivity extends AppCompatActivity implements GameView {
   public void onGameStateUpdated() {
     adapter.setBoard(model.getBoard());
     adapter.notifyDataSetChanged();
+  }
+
+  @Override
+  public void showProgressBar(boolean show) {
+    if (show) {
+      progressBar.setVisibility(View.VISIBLE);
+    } else {
+      progressBar.setVisibility(View.GONE);
+    }
+  }
+
+  @Override
+  public void setProgressPercent(int progress) {
+    progressBar.setProgress(progress);
   }
 
   /**
