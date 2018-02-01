@@ -57,8 +57,10 @@ public class GameModel {
     switch (rand.nextInt(2)) {
       case 0:
         setPlayer(Player.PLAYER_A);
+        break;
       case 1:
         setPlayer(Player.PLAYER_B);
+        break;
     }
   }
 

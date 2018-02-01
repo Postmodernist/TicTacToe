@@ -55,13 +55,13 @@ public class GameController {
       case PLAYER_A:
         if (model.makeMove(position)) {
           view.get().onGameStateUpdated();
+          if (model.getPlayer() == Player.PLAYER_B) {
+            // Pass turn to bot
+            view.get().showProgressBar(true);
+            new BotAsyncTask(bot, model).execute();
+          }
         } else {
           Toast.makeText((Context) view.get(), R.string.invalid_move, Toast.LENGTH_SHORT).show();
-        }
-        if (model.getPlayer() == Player.PLAYER_B) {
-          // Pass turn to bot
-          view.get().showProgressBar(true);
-          new BotAsyncTask(bot, model).execute();
         }
         break;
       case PLAYER_B:

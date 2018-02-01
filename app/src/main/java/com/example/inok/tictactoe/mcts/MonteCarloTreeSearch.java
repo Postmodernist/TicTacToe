@@ -9,7 +9,9 @@ import com.example.inok.tictactoe.GameController;
 public class MonteCarloTreeSearch {
 
   private static final String TAG = "TAG_" + MonteCarloTreeSearch.class.getSimpleName();
-  private static final int TIME_LIMIT = 3000;
+  private static final int TIME_LIMIT = 10000;
+  private static final int ITER_LIMIT = 50000;
+  private static final int ITER_MIN = 10000;
   private static final int WIN_SCORE = 1;
   private static final int LOSS_SCORE = -1;
   private Node root;
@@ -38,11 +40,21 @@ public class MonteCarloTreeSearch {
     Node promisingNode;
     Node nodeToExplore;
     Player winner;
-    while (System.currentTimeMillis() < deadline) {
+    int iters = 0;
+    while ((iters++ < ITER_LIMIT && System.currentTimeMillis() < deadline) || iters < ITER_MIN) {
       // Progress update
-      int progress = 100 - (int) ((deadline - System.currentTimeMillis()) * 100 / TIME_LIMIT);
-      GameController.getInstance().onProgressUpdate(progress);
-//      botAsyncTask.updateProgress(progress);
+      if (iters < ITER_MIN) {
+        int progress = (int) (iters * 100 / (double) ITER_MIN + 0.5);
+        GameController.getInstance().onProgressUpdate(progress);
+      } else {
+        int progressIter = (int) (iters * 100 / (double) ITER_LIMIT + 0.5);
+        int progressTime = 100 - (int) ((deadline - System.currentTimeMillis()) * 100 / TIME_LIMIT);
+        if (progressIter < progressTime) {
+          GameController.getInstance().onProgressUpdate(progressTime);
+        } else {
+          GameController.getInstance().onProgressUpdate(progressIter);
+        }
+      }
       // Selection
       promisingNode = getPromisingNode();
       // Expansion
