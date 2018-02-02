@@ -15,6 +15,7 @@ public class GameController {
   private static final GameModel model = GameModel.getInstance();
   private WeakReference<GameView> view;
   private Bot bot = new MctsAgent();
+  private BotAsyncTask botAsyncTask;
 
   private GameController() {
     // Constructor use is not allowed
@@ -33,17 +34,25 @@ public class GameController {
     view = null;
   }
 
+  public BotAsyncTask getBotAsyncTask() {
+    return botAsyncTask;
+  }
+
   /**
    * Start a new game
    */
   public void startNewGame() {
     Log.d(TAG, "Starting a new game");
+    // Cancel current bot task if any
+    if (botAsyncTask != null) {
+      botAsyncTask.cancel(false);
+      endBotTask();
+    }
     model.restart();
     view.get().onBoardSizeChanged();
     view.get().onGameStateUpdated();
     if (model.getPlayer() == Player.PLAYER_B) {
-      view.get().showProgressBar(true);
-      new BotAsyncTask(bot, model).execute();
+      runBotTask();
     }
   }
 
@@ -56,9 +65,7 @@ public class GameController {
         if (model.makeMove(position)) {
           view.get().onGameStateUpdated();
           if (model.getPlayer() == Player.PLAYER_B) {
-            // Pass turn to bot
-            view.get().showProgressBar(true);
-            new BotAsyncTask(bot, model).execute();
+            runBotTask();
           }
         } else {
           Toast.makeText((Context) view.get(), R.string.invalid_move, Toast.LENGTH_SHORT).show();
@@ -80,7 +87,7 @@ public class GameController {
    * Process bot click
    */
   public void onBotClick(int position) {
-    view.get().showProgressBar(false);
+    endBotTask();
     if (model.makeMove(position)) {
       view.get().onGameStateUpdated();
     } else {
@@ -111,8 +118,27 @@ public class GameController {
     }
   }
 
-  /** Update bot progress bar*/
+  /**
+   * Update bot progress bar
+   */
   public void onProgressUpdate(int progress) {
     view.get().setProgressPercent(progress);
+  }
+
+  /**
+   * Run bot task
+   */
+  private void runBotTask() {
+    view.get().showProgressBar(true);
+    botAsyncTask = new BotAsyncTask(bot, model);
+    botAsyncTask.execute();
+  }
+
+  /**
+   * End bot task
+   */
+  private void endBotTask() {
+    view.get().showProgressBar(false);
+    botAsyncTask = null;
   }
 }

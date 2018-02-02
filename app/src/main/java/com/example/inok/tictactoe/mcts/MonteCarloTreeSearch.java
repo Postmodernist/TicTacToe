@@ -4,6 +4,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.example.inok.tictactoe.Board;
+import com.example.inok.tictactoe.BotAsyncTask;
 import com.example.inok.tictactoe.GameController;
 
 public class MonteCarloTreeSearch {
@@ -11,7 +12,7 @@ public class MonteCarloTreeSearch {
   private static final String TAG = "TAG_" + MonteCarloTreeSearch.class.getSimpleName();
   private static final int TIME_LIMIT = 10000;
   private static final int ITER_LIMIT = 50000;
-  private static final int ITER_MIN = 10000;
+  private static final int ITER_MIN = 5000;
   private static final int WIN_SCORE = 1;
   private static final int LOSS_SCORE = -1;
   private Node root;
@@ -40,20 +41,27 @@ public class MonteCarloTreeSearch {
     Node promisingNode;
     Node nodeToExplore;
     Player winner;
+    BotAsyncTask botAsyncTask = GameController.getInstance().getBotAsyncTask();
     int iters = 0;
-    while ((iters++ < ITER_LIMIT && System.currentTimeMillis() < deadline) || iters < ITER_MIN) {
-      // Progress update
-      if (iters < ITER_MIN) {
-        int progress = (int) (iters * 100 / (double) ITER_MIN + 0.5);
-        GameController.getInstance().onProgressUpdate(progress);
-      } else {
-        int progressIter = (int) (iters * 100 / (double) ITER_LIMIT + 0.5);
-        int progressTime = 100 - (int) ((deadline - System.currentTimeMillis()) * 100 / TIME_LIMIT);
+    int progressIter;
+    int progressTime;
+    while (true) {
+      // Loop exit conditions and progress update
+      if (botAsyncTask.isCancelled()) {
+        return Node.INVALID_MOVE;
+      } else if (iters++ < ITER_MIN) {
+        progressIter = (int) (iters * 100 / (double) ITER_MIN + 0.5);
+        GameController.getInstance().onProgressUpdate(progressIter);
+      } else if (iters < ITER_LIMIT && System.currentTimeMillis() < deadline) {
+        progressIter = (int) (iters * 100 / (double) ITER_LIMIT + 0.5);
+        progressTime = 100 - (int) ((deadline - System.currentTimeMillis()) * 100 / TIME_LIMIT);
         if (progressIter < progressTime) {
           GameController.getInstance().onProgressUpdate(progressTime);
         } else {
           GameController.getInstance().onProgressUpdate(progressIter);
         }
+      } else {
+        break;
       }
       // Selection
       promisingNode = getPromisingNode();

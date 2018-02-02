@@ -24,4 +24,9 @@ public class BotAsyncTask extends AsyncTask<Void, Void, Integer> {
     Log.d(TAG, "Bot move: " + position);
     GameController.getInstance().onBotClick(position);
   }
+
+  @Override
+  protected void onCancelled() {
+    Log.d(TAG, "Bot task is cancelled");
+  }
 }
