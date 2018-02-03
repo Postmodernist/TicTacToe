@@ -7,12 +7,15 @@ import com.example.inok.tictactoe.Board;
 import com.example.inok.tictactoe.BotAsyncTask;
 import com.example.inok.tictactoe.GameController;
 
+import java.util.Random;
+import java.util.Set;
+
 public class MonteCarloTreeSearch {
 
   private static final String TAG = "TAG_" + MonteCarloTreeSearch.class.getSimpleName();
   private static final int TIME_LIMIT = 10000;
-  private static final int ITER_LIMIT = 50000;
-  private static final int ITER_MIN = 5000;
+  private static final int ITERATION_LIMIT = 50000;
+  private static final int ITERATION_MIN = 5000;
   private static final int WIN_SCORE = 1;
   private static final int LOSS_SCORE = -1;
   private Node root;
@@ -42,23 +45,23 @@ public class MonteCarloTreeSearch {
     Node nodeToExplore;
     Player winner;
     BotAsyncTask botAsyncTask = GameController.getInstance().getBotAsyncTask();
-    int iters = 0;
-    int progressIter;
+    int iterations = 0;
+    int progressIterations;
     int progressTime;
     while (true) {
       // Loop exit conditions and progress update
       if (botAsyncTask.isCancelled()) {
         return Node.INVALID_MOVE;
-      } else if (iters++ < ITER_MIN) {
-        progressIter = (int) (iters * 100 / (double) ITER_MIN + 0.5);
-        GameController.getInstance().onProgressUpdate(progressIter);
-      } else if (iters < ITER_LIMIT && System.currentTimeMillis() < deadline) {
-        progressIter = (int) (iters * 100 / (double) ITER_LIMIT + 0.5);
+      } else if (iterations++ < ITERATION_MIN) {
+        progressIterations = (int) (iterations * 100 / (double) ITERATION_MIN + 0.5);
+        GameController.getInstance().onProgressUpdate(progressIterations);
+      } else if (iterations < ITERATION_LIMIT && System.currentTimeMillis() < deadline) {
+        progressIterations = (int) (iterations * 100 / (double) ITERATION_LIMIT + 0.5);
         progressTime = 100 - (int) ((deadline - System.currentTimeMillis()) * 100 / TIME_LIMIT);
-        if (progressIter < progressTime) {
+        if (progressIterations < progressTime) {
           GameController.getInstance().onProgressUpdate(progressTime);
         } else {
-          GameController.getInstance().onProgressUpdate(progressIter);
+          GameController.getInstance().onProgressUpdate(progressIterations);
         }
       } else {
         break;
@@ -70,19 +73,15 @@ public class MonteCarloTreeSearch {
         promisingNode.expand();
       }
       // Simulation
-      if (promisingNode.hasChildren()) {
-        nodeToExplore = promisingNode.getRandomChild();
-      } else {
-        nodeToExplore = promisingNode;
-      }
+      nodeToExplore = promisingNode.hasChildren() ? promisingNode.getRandomChild() : promisingNode;
       winner = randomRollOut(nodeToExplore);
       // Update
       backPropagation(nodeToExplore, winner);
     }
     Logger.printChildren(root);
+    Logger.printDivider("Iterations: " + iterations);
     // Select best move
     Node mostVisitedChild = root.getMostVisitedChild();
-    Logger.printDivider(null);
     if (mostVisitedChild == null) {
       // No moves available
       return Node.INVALID_MOVE;
@@ -123,22 +122,34 @@ public class MonteCarloTreeSearch {
    */
   private boolean isExpandable(Node node) {
     Board board = node.getBoard();
-    return !board.hasWinCondition() && board.hasEmptyCell();
+    return !board.hasWinCondition() && board.hasValidMove();
   }
 
   /**
    * Simulate random play and return a winner or Player.NONE in case of game draw
    */
   private Player randomRollOut(Node nodeToExplore) {
+    Board board = new Board(nodeToExplore.getBoard());
+    Player[] cells = board.getCells();
+    Player player = nodeToExplore.getPlayer();
+    Set<Integer> validMoves = new android.support.v4.util.ArraySet<>(board.getValidMoves());
+    Random rand = new Random();
+    int lastMove = nodeToExplore.getLastMove();
     // Random descent until hit leaf node
-    Node node = new Node(nodeToExplore.getBoard(), nodeToExplore.getPlayer());
-    while (!node.getBoard().hasWinCondition()) {
-      if (!node.makeRandomMove()) {
+    while (!board.hasWinCondition(lastMove)) {
+      validMoves.addAll(board.getEmptyNeighbors(lastMove));
+      if (validMoves.size() > 0) {
+        // Switch player
+        player = player.getOpponent();
+        // Make random move
+        lastMove = (int) validMoves.toArray()[rand.nextInt(validMoves.size())];
+        cells[lastMove] = player;
+      } else {
         // No more possible moves and no winner
         return Player.NONE;
       }
     }
-    return node.getPlayer();
+    return player;
   }
 
   /**

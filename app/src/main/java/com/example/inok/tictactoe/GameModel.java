@@ -79,7 +79,7 @@ public class GameModel {
       // Current player wins
       GameController.getInstance().displayWinner(player);
       setPlayer(Player.NONE);
-    } else if (board.hasEmptyCell()) {
+    } else if (board.hasValidMove()) {
       // Game continues
       setPlayer(player.getOpponent());
     } else {

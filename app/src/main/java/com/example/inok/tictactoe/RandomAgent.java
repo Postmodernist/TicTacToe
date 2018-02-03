@@ -15,7 +15,7 @@ public class RandomAgent implements Bot {
 
   @Override
   public int nextMove(Board board, Player player) {
-    List<Integer> emptyPositions = board.getEmptyPositions();
+    List<Integer> emptyPositions = board.getValidMoves();
     int index = rnd.nextInt(emptyPositions.size());
     return emptyPositions.get(index);
   }

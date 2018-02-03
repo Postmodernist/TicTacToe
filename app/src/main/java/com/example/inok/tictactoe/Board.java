@@ -60,7 +60,7 @@ public class Board {
   /**
    * Check if board has at least one empty cell
    */
-  public boolean hasEmptyCell() {
+  public boolean hasValidMove() {
     for (int i = 0; i < cells.length; i++) {
       if (isValidMove(i)) {
         return true;
@@ -72,16 +72,19 @@ public class Board {
   /**
    * Return a list of indexes of empty cells
    */
-  public List<Integer> getEmptyPositions() {
-    List<Integer> emptyPositions = new ArrayList<>();
+  public List<Integer> getValidMoves() {
+    List<Integer> validMoves = new ArrayList<>();
     for (int i = 0; i < cells.length; i++) {
       if (isValidMove(i)) {
-        emptyPositions.add(i);
+        validMoves.add(i);
       }
     }
-    return emptyPositions;
+    return validMoves;
   }
 
+  /**
+   * Return true if given move is valid
+   */
   public boolean isValidMove(int position) {
     // Out of range
     if (position < 0 || position >= cells.length) {
@@ -105,6 +108,21 @@ public class Board {
       }
     }
     return false;
+  }
+
+  /**
+   * Return a list of indexes of empty neighbors
+   */
+  public List<Integer> getEmptyNeighbors(int position) {
+    List<Integer> neighbors = new ArrayList<>();
+    int[] allNeighbors = {position - size - 1, position - size, position - size + 1,
+        position - 1, position + 1, position + size - 1, position + size, position + size + 1};
+    for (int i : allNeighbors) {
+      if (i >= 0 && i < size && cells[i] == Player.NONE) {
+        neighbors.add(i);
+      }
+    }
+    return neighbors;
   }
 
   /**
@@ -190,16 +208,62 @@ public class Board {
   }
 
   /**
+   * Test if the board meets win condition after last move (quick)
+   */
+  public boolean hasWinCondition(int lastMove) {
+    int maxIndex = size - 1;
+    Player[] row = new Player[size];
+    Player[] col = new Player[size];
+    // Test row and column
+    int rowN = lastMove / size;
+    int colN = lastMove % size;
+    for (int i = 0; i < size; i++) {
+      row[i] = cells[rowN * size + i];
+      col[i] = cells[colN + size * i];
+    }
+    if (winCondition(row) || winCondition(col)) {
+      return true;
+    }
+    // Test '\' diagonal
+    int diagonalN = colN - rowN;
+    int diagonalSize = size - Math.abs(diagonalN);
+    if (diagonalSize >= IN_A_ROW) {
+      Player[] diagonal = new Player[diagonalSize];
+      int diagonalStart = diagonalN < 0 ? size * (-diagonalN) : diagonalN;
+      for (int i = 0; i < diagonalSize; i++) {
+        diagonal[i] = cells[diagonalStart + i * (size + 1)];
+      }
+      if (winCondition(diagonal)) {
+        return true;
+      }
+    }
+    // Test '/' diagonal
+    diagonalN = colN + rowN - maxIndex;
+    diagonalSize = size - Math.abs(diagonalN);
+    if (diagonalSize >= IN_A_ROW) {
+      Player[] diagonal = new Player[diagonalSize];
+      int diagonalStart = diagonalN < 0 ? maxIndex + diagonalN : maxIndex + size * diagonalN;
+      for (int i = 0; i < diagonalSize; i++) {
+        diagonal[i] = cells[diagonalStart + i * (size - 1)];
+      }
+      if (winCondition(diagonal)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Test if array meets win condition
    */
-  private boolean winCondition(Player[] cells) {
-    if (cells == null) {
+  private boolean winCondition(Player[] row) {
+    if (row == null) {
       Log.e(TAG, "Cells array reference is null");
       return false;
     }
     int matchCount = 0;
     Player lastCell = null;
-    for (Player cell : cells) {
+    for (Player cell : row) {
       if (cell == Player.PLAYER_A || cell == Player.PLAYER_B) {
         if (cell == lastCell) {
           matchCount++;

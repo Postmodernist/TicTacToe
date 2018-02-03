@@ -19,11 +19,7 @@ public class Node {
   private int lastMove;     // move between parent and this node
   private int visitCount;   // number of plays that have been run at or below this node
   private int winScore;     // accumulated win/loss value
-  private Random rnd = new Random();
-
-  private Node() {
-    // This constructor is not allowed
-  }
+  private Random rand = new Random();
 
   public Node(Board board, Player player) {
     this.board = new Board(board);
@@ -31,18 +27,6 @@ public class Node {
     lastMove = INVALID_MOVE;
     visitCount = 0;
     winScore = 0;
-  }
-
-  public Node(Node node) {
-    parent = node.getParent();
-    for (Node child : node.getChildren()) {
-      children.add(new Node(child));
-    }
-    board = new Board(node.getBoard());
-    player = node.getPlayer();
-    lastMove = node.getLastMove();
-    visitCount = node.getVisitCount();
-    winScore = node.getWinScore();
   }
 
   public Node getParent() {
@@ -93,10 +77,6 @@ public class Node {
     return winScore;
   }
 
-  public void setWinScore(int winScore) {
-    this.winScore = winScore;
-  }
-
   public void addWinScore(int score) {
     if (winScore != Integer.MIN_VALUE) {
       winScore += score;
@@ -111,7 +91,7 @@ public class Node {
       Log.e(TAG, "getRandomChild failed: this node has no children");
       return null;
     }
-    int index = rnd.nextInt(children.size());
+    int index = rand.nextInt(children.size());
     return children.get(index);
   }
 
@@ -140,8 +120,9 @@ public class Node {
       Log.e(TAG, "Node has already been expanded");
       return;
     }
-    for (int position : board.getEmptyPositions()) {
-      Node node = new Node(board, player.getOpponent());
+    Node node;
+    for (int position : board.getValidMoves()) {
+      node = new Node(board, player.getOpponent());
       if (!node.getBoard().set(player.getOpponent(), position)) {
         Log.e(TAG, "Invalid move during node expansion: " + position);
       }
@@ -149,21 +130,5 @@ public class Node {
       node.setLastMove(position);
       children.add(node);
     }
-  }
-
-  /**
-   * Make random move
-   */
-  public boolean makeRandomMove() {
-    List<Integer> emptyPositions = board.getEmptyPositions();
-    if (emptyPositions.size() > 0) {
-      // Switch player
-      player = player.getOpponent();
-      // Make random move
-      int index = rnd.nextInt(emptyPositions.size());
-      board.set(player, emptyPositions.get(index));
-      return true;
-    }
-    return false;
   }
 }
