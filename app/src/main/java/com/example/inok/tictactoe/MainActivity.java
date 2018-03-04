@@ -2,21 +2,19 @@ package com.example.inok.tictactoe;
 
 import android.content.res.Resources;
 import android.content.res.TypedArray;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import com.example.inok.tictactoe.mcts.Player;
+import com.example.inok.tictactoe.game.Game;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -24,12 +22,12 @@ import butterknife.ButterKnife;
 public class MainActivity extends AppCompatActivity implements GameView {
 
   private static final String TAG = "TAG_GameView";
-  private static final GameController controller = GameController.getInstance();
-  private static final GameModel model = GameModel.getInstance();
   private GridView boardGrid;
   private BoardAdapter adapter;
-  @BindView(R.id.root_layout) RelativeLayout rootLayout;
-  @BindView(R.id.progress_bar) ProgressBar progressBar;
+  @BindView(R.id.root_layout)
+  RelativeLayout rootLayout;
+  @BindView(R.id.progress_bar)
+  ProgressBar progressBar;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -37,8 +35,8 @@ public class MainActivity extends AppCompatActivity implements GameView {
     setContentView(R.layout.activity_main);
     ButterKnife.bind(this);
 
-    // Register activity with game controller
-    controller.setView(this);
+    // Register activity with the GameController
+    GameController.setView(this);
 
     // Display dimensions
     int displayWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
@@ -59,14 +57,17 @@ public class MainActivity extends AppCompatActivity implements GameView {
         boardWidth, boardWidth);
     gridLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
     boardGrid.setLayoutParams(gridLayoutParams);
-    boardGrid.setNumColumns(model.getBoardSize());
+    boardGrid.setNumColumns(Game.N);
     boardGrid.setHorizontalSpacing((int) getResources().getDimension(R.dimen.grid_spacing));
     boardGrid.setVerticalSpacing((int) getResources().getDimension(R.dimen.grid_spacing));
     boardGrid.setDrawSelectorOnTop(true); // enable ripple effect
     boardGrid.setSelector(R.drawable.circular_ripple);
 
     // Grid adapter
-    adapter = new BoardAdapter();
+    adapter = new BoardAdapter(this, boardGrid,
+        getDrawable(R.drawable.circle_0),
+        getDrawable(R.drawable.circle_a),
+        getDrawable(R.drawable.circle_b));
     boardGrid.setAdapter(adapter);
 
     // Item click listener
@@ -74,27 +75,21 @@ public class MainActivity extends AppCompatActivity implements GameView {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.d(TAG, "Player move: " + position);
-        controller.onPlayerClick(position);
+        GameController.onPlayerClick(position);
       }
     });
 
     // Insert Board view into root layout
     rootLayout.addView(boardGrid);
 
-    switch (model.getPlayer()) {
-      case NONE:
-        // If no current player -- start a new game
-        controller.startNewGame();
-        break;
-      case PLAYER_A:
-        // Player's turn -- just update game state
-        onGameStateUpdated();
-        break;
-      case PLAYER_B:
-        // Bot is thinking -- show progress bar and update game state
+    if (Game.state == null) {
+      GameController.startNewGame();
+    } else {
+      if (!Game.state.isFinished() && Game.state.getPlayer() == -1) {
+        // Agent is thinking -- show progress bar
         progressBar.setVisibility(View.VISIBLE);
-        onGameStateUpdated();
-        break;
+      }
+      onGameStateUpdated();
     }
   }
 
@@ -102,7 +97,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
   protected void onDestroy() {
     super.onDestroy();
     // Checkout
-    controller.freeView();
+    GameController.freeView();
   }
 
   @Override
@@ -115,19 +110,19 @@ public class MainActivity extends AppCompatActivity implements GameView {
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
       case R.id.new_game:
-        controller.startNewGame();
+        GameController.startNewGame();
         Toast.makeText(this, R.string.new_game_started, Toast.LENGTH_SHORT).show();
         return true;
       case R.id.board_size_1:
-        model.setBoardSize(5);
+        GameController.changeBoardSize(5);
         Toast.makeText(this, R.string.board_size_set_1, Toast.LENGTH_SHORT).show();
         return true;
       case R.id.board_size_2:
-        model.setBoardSize(6);
+        GameController.changeBoardSize(6);
         Toast.makeText(this, R.string.board_size_set_2, Toast.LENGTH_SHORT).show();
         return true;
       case R.id.board_size_3:
-        model.setBoardSize(7);
+        GameController.changeBoardSize(7);
         Toast.makeText(this, R.string.board_size_set_3, Toast.LENGTH_SHORT).show();
         return true;
       default:
@@ -137,12 +132,12 @@ public class MainActivity extends AppCompatActivity implements GameView {
 
   @Override
   public void onBoardSizeChanged() {
-    boardGrid.setNumColumns(model.getBoardSize());
+    boardGrid.setNumColumns(Game.N);
   }
 
   @Override
   public void onGameStateUpdated() {
-    adapter.setBoard(model.getBoard());
+    adapter.setBoard(Game.state.getBoard());
     adapter.notifyDataSetChanged();
   }
 
@@ -177,78 +172,5 @@ public class MainActivity extends AppCompatActivity implements GameView {
     int appBarHeight = (int) styledAttributes.getDimension(0, 0);
     styledAttributes.recycle();
     return statusBarHeight + appBarHeight;
-  }
-
-  /**
-   * View adapter for board grid
-   */
-  private class BoardAdapter extends BaseAdapter {
-
-    private Board board;
-
-    public void setBoard(Board board) {
-      this.board = board;
-    }
-
-    /**
-     * How many items are in the data set represented by this Adapter
-     */
-    @Override
-    public int getCount() {
-      if (board != null) {
-        return board.getCells().length;
-      }
-      return 0;
-    }
-
-    /**
-     * Get the data item associated with the specified position in the data set
-     */
-    @Override
-    public Object getItem(int position) {
-      if (board != null) {
-        return board.get(position);
-      }
-      return null;
-    }
-
-    /**
-     * Get the row id associated with the specified position in the list
-     */
-    @Override
-    public long getItemId(int position) {
-      return 0;
-    }
-
-    /**
-     * Get a View that displays the data at the specified position in the data set
-     */
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      if (board == null) {
-        return null;
-      }
-      if (convertView == null) {
-        convertView = new View(MainActivity.this);
-      }
-      int viewSize = boardGrid.getColumnWidth();
-      convertView.setLayoutParams(new GridView.LayoutParams(viewSize, viewSize));
-      Player cell = (Player) getItem(position);
-      switch (cell) {
-        case NONE:
-          convertView.setBackground(getDrawable(R.drawable.circle_0));
-          break;
-        case PLAYER_A:
-          convertView.setBackground(getDrawable(R.drawable.circle_a));
-          break;
-        case PLAYER_B:
-          convertView.setBackground(getDrawable(R.drawable.circle_b));
-          break;
-        default:
-          Log.e(TAG, "Unknown cell value: " + cell);
-          break;
-      }
-      return convertView;
-    }
   }
 }
