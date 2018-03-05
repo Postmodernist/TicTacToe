@@ -97,8 +97,10 @@ public class Mcts {
     int player = state.getPlayer();
     int action;
     Random random = new Random();
+    List<Integer> validActions;
     while (!state.isFinished()) {
-      action = state.getValidActions()[random.nextInt(state.getValidActions().length)];
+      validActions = new ArrayList<>(state.getValidActions());
+      action = validActions.get(random.nextInt(validActions.size()));
       state = state.getNextState(action);
     }
     return state.getPlayer() == player ? state.getValue() : -state.getValue();

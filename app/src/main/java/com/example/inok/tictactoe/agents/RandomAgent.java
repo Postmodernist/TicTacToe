@@ -2,6 +2,8 @@ package com.example.inok.tictactoe.agents;
 
 import com.example.inok.tictactoe.game.Game;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -10,12 +12,11 @@ import java.util.Random;
 
 public class RandomAgent implements Agent {
 
-  private Random rnd = new Random();
+  private Random random = new Random();
 
   @Override
   public int getAction() {
-    int[] validActions = Game.state.getValidActions();
-    int i = rnd.nextInt(validActions.length);
-    return validActions[i];
+    List<Integer> validActions = new ArrayList<>(Game.state.getValidActions());
+    return validActions.get(random.nextInt(validActions.size()));
   }
 }
