@@ -9,17 +9,17 @@
     app:showAsAction="ifRoom" />
 
   <item
-    android:id="@+id/board_size_1"
-    android:title="@string/menu_board_size_1"
+    android:id="@+id/difficulty_easy"
+    android:title="@string/menu_difficulty_easy"
     app:showAsAction="never" />
 
   <item
-    android:id="@+id/board_size_2"
-    android:title="@string/menu_board_size_2"
+    android:id="@+id/difficulty_medium"
+    android:title="@string/menu_difficulty_medium"
     app:showAsAction="never" />
 
   <item
-    android:id="@+id/board_size_3"
-    android:title="@string/menu_board_size_3"
+    android:id="@+id/difficulty_hard"
+    android:title="@string/menu_difficulty_hard"
     app:showAsAction="never" />
 </menu>

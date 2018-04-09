@@ -4,7 +4,6 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -21,13 +20,11 @@ import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements GameView {
 
-  private static final String TAG = "TAG_GameView";
-  private GridView boardGrid;
-  private BoardAdapter adapter;
   @BindView(R.id.root_layout)
   RelativeLayout rootLayout;
   @BindView(R.id.progress_bar)
   ProgressBar progressBar;
+  private BoardAdapter adapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -35,10 +32,10 @@ public class MainActivity extends AppCompatActivity implements GameView {
     setContentView(R.layout.activity_main);
     ButterKnife.bind(this);
 
-    // Register activity with the GameController
-    GameController.setView(this);
+    // Register GameView with the GameController
+    GameController.registerView(this);
 
-    // Display dimensions
+    // Get display dimensions
     int displayWidth = Resources.getSystem().getDisplayMetrics().widthPixels;
     int displayHeight = Resources.getSystem().getDisplayMetrics().heightPixels;
 
@@ -50,11 +47,11 @@ public class MainActivity extends AppCompatActivity implements GameView {
     boardWidth -= (int) (getResources().getDimension(R.dimen.app_margin) * 2 + 0.5f);
 
     // Board view
-    boardGrid = new GridView(this);
+    GridView boardGrid = new GridView(this);
 
     // View parameters
-    RelativeLayout.LayoutParams gridLayoutParams = new RelativeLayout.LayoutParams(
-        boardWidth, boardWidth);
+    RelativeLayout.LayoutParams gridLayoutParams =
+        new RelativeLayout.LayoutParams(boardWidth, boardWidth);
     gridLayoutParams.addRule(RelativeLayout.CENTER_IN_PARENT);
     boardGrid.setLayoutParams(gridLayoutParams);
     boardGrid.setNumColumns(Game.N);
@@ -74,7 +71,6 @@ public class MainActivity extends AppCompatActivity implements GameView {
     boardGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
       @Override
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Log.d(TAG, "Player move: " + position);
         GameController.onPlayerClick(position);
       }
     });
@@ -95,9 +91,8 @@ public class MainActivity extends AppCompatActivity implements GameView {
 
   @Override
   protected void onDestroy() {
+    GameController.unregisterView();
     super.onDestroy();
-    // Checkout
-    GameController.freeView();
   }
 
   @Override
@@ -113,26 +108,21 @@ public class MainActivity extends AppCompatActivity implements GameView {
         GameController.startNewGame();
         Toast.makeText(this, R.string.new_game_started, Toast.LENGTH_SHORT).show();
         return true;
-      case R.id.board_size_1:
-        GameController.changeBoardSize(5);
-        Toast.makeText(this, R.string.board_size_set_1, Toast.LENGTH_SHORT).show();
+      case R.id.difficulty_easy:
+        GameController.setDifficulty("easy");
+        Toast.makeText(this, R.string.difficulty_set_easy, Toast.LENGTH_SHORT).show();
         return true;
-      case R.id.board_size_2:
-        GameController.changeBoardSize(6);
-        Toast.makeText(this, R.string.board_size_set_2, Toast.LENGTH_SHORT).show();
+      case R.id.difficulty_medium:
+        GameController.setDifficulty("medium");
+        Toast.makeText(this, R.string.difficulty_set_medium, Toast.LENGTH_SHORT).show();
         return true;
-      case R.id.board_size_3:
-        GameController.changeBoardSize(7);
-        Toast.makeText(this, R.string.board_size_set_3, Toast.LENGTH_SHORT).show();
+      case R.id.difficulty_hard:
+        GameController.setDifficulty("hard");
+        Toast.makeText(this, R.string.difficulty_set_hard, Toast.LENGTH_SHORT).show();
         return true;
       default:
         return super.onOptionsItemSelected(item);
     }
-  }
-
-  @Override
-  public void onBoardSizeChanged() {
-    boardGrid.setNumColumns(Game.N);
   }
 
   @Override
@@ -143,11 +133,7 @@ public class MainActivity extends AppCompatActivity implements GameView {
 
   @Override
   public void showProgressBar(boolean show) {
-    if (show) {
-      progressBar.setVisibility(View.VISIBLE);
-    } else {
-      progressBar.setVisibility(View.GONE);
-    }
+      progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
   }
 
   @Override

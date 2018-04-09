@@ -7,10 +7,10 @@ import com.example.inok.tictactoe.agents.Agent;
 
 public class AgentAsyncTask extends AsyncTask<Void, Void, Integer> {
 
-  private static final String TAG = "TAG_" + AgentAsyncTask.class.getSimpleName();
+  private static final String TAG = "AgentAsyncTask";
   private Agent agent;
 
-  public AgentAsyncTask(Agent agent) {
+  AgentAsyncTask(Agent agent) {
     this.agent = agent;
   }
 
@@ -21,7 +21,6 @@ public class AgentAsyncTask extends AsyncTask<Void, Void, Integer> {
 
   @Override
   protected void onPostExecute(Integer position) {
-    Log.d(TAG, "Agent move: " + position);
     GameController.onAgentClick(position);
   }
 

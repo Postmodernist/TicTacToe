@@ -1,7 +1,9 @@
 package com.example.inok.tictactoe;
 
+import android.content.res.AssetManager;
+
 public interface GameView {
-  void onBoardSizeChanged();
+  AssetManager getAssets();
   void onGameStateUpdated();
   void showProgressBar(boolean show);
   void setProgressPercent(int progress);

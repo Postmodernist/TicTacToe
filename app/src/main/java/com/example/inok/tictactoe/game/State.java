@@ -3,30 +3,29 @@ package com.example.inok.tictactoe.game;
 import java.util.HashSet;
 import java.util.Set;
 
-public class State {
+public final class State {
 
-  private int[] board;
-  private int player;
-  private int turn;
-  private String id;
-  private Set<Integer> validActions;
-  private boolean finished;
-  private int value;
+  private final int[] board;
+  private final int player;
+  private final String id;
+  private final Set<Integer> validActions;
+  private final boolean finished;
+  private final int value;
 
-  public State(int[] board, int player) {
+  private float[] canonicalBoard;
+
+  State(int[] board, int player) {
     this.board = board;
     this.player = player;
-    this.turn = 0;
     this.id = Game.makeId(board);
     this.validActions = Game.getInitialValidActions();
     this.finished = false;
     this.value = 0;
   }
 
-  public State(int[] board, int player, int turn, Set<Integer> validActions, int action) {
+  private State(int[] board, int player, Set<Integer> validActions, int action) {
     this.board = board;
     this.player = player;
-    this.turn = turn;
     this.id = Game.makeId(board);
     this.validActions = Game.updateValidActions(validActions, board, action);
     boolean opponentWon = Game.isPlayerWon(board, -player, action);
@@ -38,12 +37,18 @@ public class State {
     return board;
   }
 
-  public int getPlayer() {
-    return player;
+  public float[] getCanonicalBoard() {
+    if (canonicalBoard == null) {
+      canonicalBoard = new float[Game.board_size];
+      for (int i = 0; i < board.length; i++) {
+        canonicalBoard[i] = board[i] * player;
+      }
+    }
+    return canonicalBoard;
   }
 
-  public int getTurn() {
-    return turn;
+  public int getPlayer() {
+    return player;
   }
 
   public String getId() {
@@ -65,6 +70,6 @@ public class State {
   public State getNextState(int action) {
     int[] new_board = board.clone();
     new_board[action] = player;
-    return new State(new_board, -player, turn + 1, new HashSet<>(validActions), action);
+    return new State(new_board, -player, new HashSet<>(validActions), action);
   }
 }

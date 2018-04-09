@@ -9,13 +9,13 @@
   <string name="player_b_win">Red player wins</string>
   <string name="game_draw">Game draw</string>
   <string name="new_game_started">Started a new game</string>
-  <string name="board_size_set_1">Board size is set to 5</string>
-  <string name="board_size_set_2">Board size is set to 6</string>
-  <string name="board_size_set_3">Board size is set to 7</string>
+  <string name="difficulty_set_easy">AI difficulty set to EASY</string>
+  <string name="difficulty_set_medium">AI difficulty set to MEDIUM</string>
+  <string name="difficulty_set_hard">AI difficulty set to HARD</string>
 
   <!-- Menu -->
   <string name="menu_new_game">New game</string>
-  <string name="menu_board_size_1">Board size 5</string>
-  <string name="menu_board_size_2">Board size 6</string>
-  <string name="menu_board_size_3">Board size 7</string>
+  <string name="menu_difficulty_easy">Easy AI</string>
+  <string name="menu_difficulty_medium">Medium AI</string>
+  <string name="menu_difficulty_hard">Hard AI</string>
 </resources>

@@ -5,27 +5,28 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.inok.tictactoe.agents.Agent;
-import com.example.inok.tictactoe.agents.MctsAgent;
+import com.example.inok.tictactoe.agents.MctsPAgent;
 import com.example.inok.tictactoe.game.Game;
 
 import java.lang.ref.WeakReference;
 
 public class GameController {
 
-  private static final String TAG = "TAG_" + GameController.class.getSimpleName();
+  private static final String TAG = "GameController";
   private static WeakReference<GameView> view;
-  private static Agent agent = new MctsAgent();
+  private static Agent agent;
   private static AgentAsyncTask agentAsyncTask;
+  private static String difficulty = "hard";
 
   public static AgentAsyncTask getAgentAsyncTask() {
     return agentAsyncTask;
   }
 
-  public static void setView(GameView view) {
+  public static void registerView(GameView view) {
     GameController.view = new WeakReference<>(view);
   }
 
-  public static void freeView() {
+  public static void unregisterView() {
     view.clear();
     view = null;
   }
@@ -34,14 +35,20 @@ public class GameController {
    * Start a new game
    */
   public static void startNewGame() {
+    if (view.get() == null) {
+      throw new RuntimeException("GameView reference is empty");
+    }
     Log.d(TAG, "Starting a new game");
+    // Create agent
+    if (agent == null) {
+      agent = new MctsPAgent(view.get().getAssets());
+    }
     // Cancel current agent task if any
     if (agentAsyncTask != null) {
       agentAsyncTask.cancel(false);
       endAgentTask();
     }
     Game.restart();
-    view.get().onBoardSizeChanged();
     view.get().onGameStateUpdated();
     if (Game.state.getPlayer() == -1) {
       runAgentTask();
@@ -49,11 +56,24 @@ public class GameController {
   }
 
   /**
-   * Change board size. Requires immediate game restart
+   * Set AI difficulty
    */
-  public static void changeBoardSize(int n) {
-    Game.setN(n);
-    startNewGame();
+  public static void setDifficulty(String difficulty) {
+    GameController.difficulty = difficulty;
+  }
+
+  /**
+   * Get MCTS simulations number based on difficulty
+   */
+  public static int getSimulations() {
+    switch (difficulty) {
+      case "easy":
+        return 300;
+      case "medium":
+        return 600;
+      default:
+        return 1000;
+    }
   }
 
   /**
@@ -64,6 +84,7 @@ public class GameController {
       Toast.makeText((Context) view.get(), R.string.start_game, Toast.LENGTH_SHORT).show();
     } else if (Game.state.getPlayer() == 1) {  // player's turn
       if (Game.isValidAction(position)) {
+        Log.d(TAG, "Player move: " + position);
         // Make a move
         Game.state = Game.state.getNextState(position);
         view.get().onGameStateUpdated();
@@ -87,6 +108,7 @@ public class GameController {
   public static void onAgentClick(int position) {
     endAgentTask();
     if (Game.isValidAction(position)) {
+      Log.d(TAG, "Agent move: " + position);
       // Make a move
       Game.state = Game.state.getNextState(position);
       view.get().onGameStateUpdated();
@@ -100,9 +122,18 @@ public class GameController {
   }
 
   /**
+   * Update agent progress bar
+   */
+  public static void onProgressUpdate(int progress) {
+    if (view != null && view.get() != null) {
+      view.get().setProgressPercent(progress);
+    }
+  }
+
+  /**
    * Display the winner
    */
-  public static void displayWinner(int winner) {
+  private static void displayWinner(int winner) {
     switch (winner) {
       case 1:
         Toast.makeText((Context) view.get(), R.string.player_a_win, Toast.LENGTH_LONG).show();
@@ -119,15 +150,6 @@ public class GameController {
       default:
         Log.e(TAG, "Unknown player");
         break;
-    }
-  }
-
-  /**
-   * Update agent progress bar
-   */
-  public static void onProgressUpdate(int progress) {
-    if (view != null && view.get() != null) {
-      view.get().setProgressPercent(progress);
     }
   }
 

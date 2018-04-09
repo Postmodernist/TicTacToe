@@ -7,9 +7,8 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Agent that makes random moves
+ * Agent makes random moves
  */
-
 public class RandomAgent implements Agent {
 
   private Random random = new Random();

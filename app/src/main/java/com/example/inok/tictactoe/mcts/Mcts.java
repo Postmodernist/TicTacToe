@@ -1,5 +1,8 @@
 package com.example.inok.tictactoe.mcts;
 
+import android.annotation.SuppressLint;
+import android.util.Log;
+
 import com.example.inok.tictactoe.AgentAsyncTask;
 import com.example.inok.tictactoe.GameController;
 import com.example.inok.tictactoe.game.Game;
@@ -17,8 +20,9 @@ import java.util.Random;
 
 public class Mcts {
 
-  public static final double C_UCT = 1.41;
+  private static final String TAG = "MCTS";
 
+  private static final double C_UCT = 1.41;
   private static final int TIME_LIMIT = 5000;
 
   private Map<String, Node> tree = new HashMap<>();
@@ -183,6 +187,68 @@ public class Mcts {
     for (Edge edge : node.edges) {
       subtree.put(edge.outNode.state.getId(), edge.outNode);
       copySubtree(subtree, edge.outNode);
+    }
+  }
+
+  private static final class Node {
+
+    final State state;
+    List<Edge> edges = new ArrayList<>();
+
+    Node(State state) {
+      this.state = state;
+    }
+  }
+
+  private static final class Edge {
+
+    final Node outNode;
+    final int action;
+    final int player;
+
+    int N = 0;
+    int W = 0;
+    double Q = 0;
+
+    Edge(Node inNode, Node outNode, int action) {
+      this.outNode = outNode;
+      this.action = action;
+      this.player = inNode.state.getPlayer();
+    }
+  }
+
+  private static class Logger {
+
+    static void printDivider(String msg) {
+      String div = "------------------------------------------------";
+      if (msg != null && msg.length() > 0) {
+        div = msg + " " + div.substring(msg.length() + 1);
+      }
+      Log.d(TAG, div);
+    }
+
+    @SuppressLint("DefaultLocale")
+    static void printChildren(Node node) {
+      if (node.edges.isEmpty()) {
+        Log.d(TAG, "Node has no children");
+        return;
+      }
+      int nodeVisits = 0;
+      for (Edge edge : node.edges) {
+        nodeVisits += edge.N;
+      }
+      Log.d(TAG, "  Action       N       W           Q           U");
+      StringBuilder sb;
+      for (Edge edge : node.edges) {
+        double u = edge.Q + Mcts.C_UCT * Math.sqrt(Math.log(nodeVisits) / edge.N);
+        sb = new StringBuilder();
+        sb.append(String.format("%8d", edge.action));
+        sb.append(String.format("%8d", edge.N));
+        sb.append(String.format("%8d", edge.W));
+        sb.append(String.format("%12.6f", edge.Q));
+        sb.append(String.format("%12.6f", u));
+        Log.d(TAG, sb.toString());
+      }
     }
   }
 }

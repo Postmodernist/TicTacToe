@@ -13,9 +13,10 @@ import java.util.Set;
  * 'Four' game. The first player to have 4 pieces in a straight line wins.
  * A player can't place a piece on a square surrounded by empty squares.
  */
-public class Game {
+public final class Game {
 
-  public static int N = 6;
+  public static final int N = 7;
+
   public static int board_size;
   public static State state;
 
@@ -28,6 +29,9 @@ public class Game {
 
   static {
     init();
+  }
+
+  private Game() {  // prevents instantiation
   }
 
   /**
@@ -43,14 +47,6 @@ public class Game {
     borders = findBorders();
     neighbors = findNeighbors();
     win_segments = findWinSegments();
-  }
-
-  /**
-   * Set board size
-   */
-  public static void setN(int n) {
-    N = n;
-    init();
   }
 
   /**

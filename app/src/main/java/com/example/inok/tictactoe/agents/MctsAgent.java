@@ -6,14 +6,10 @@ import com.example.inok.tictactoe.mcts.Mcts;
 /**
  * Agent uses Monte-Carlo Tree Search to choose next move
  */
-
 public class MctsAgent implements Agent {
 
   private Mcts mcts = new Mcts();
 
-  /**
-   * Return action with max MCTS score
-   */
   @Override
   public int getAction() {
     int[] distribution = mcts.getDistribution(Game.state);

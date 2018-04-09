@@ -15,7 +15,7 @@ import java.lang.ref.WeakReference;
  */
 public class BoardAdapter extends BaseAdapter {
 
-  private static final String TAG = "TAG_GameView";
+  private static final String TAG = "BoardAdapter";
   private WeakReference<Context> context;
   private GridView boardGrid;
   private Drawable circle0;
@@ -23,8 +23,8 @@ public class BoardAdapter extends BaseAdapter {
   private Drawable circleB;
   private int[] board;
 
-  public BoardAdapter(Context context, GridView boardGrid, Drawable circle0, Drawable circleA,
-                      Drawable circleB) {
+  BoardAdapter(Context context, GridView boardGrid, Drawable circle0, Drawable circleA,
+               Drawable circleB) {
     this.context = new WeakReference<>(context);
     this.boardGrid = boardGrid;
     this.circle0 = circle0;
