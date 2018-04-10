@@ -11,4 +11,6 @@ simulate, so I replaced it with probabilistic version based on neural <br>
 net, which is responsible for evaluating boards and predicting moves. <br>
 <br>
 The model was trained in another project and used here only for inference. <br>
-https://github.com/Postmodernist/BoardAI
+https://github.com/Postmodernist/BoardAI<br>
+<br><br>
+![screenshot](screenshot.jpg?raw=true "Game")
