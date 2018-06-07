@@ -1,7 +1,6 @@
 package com.alexbaryzhikov.tictactoe;
 
 import android.content.Context;
-import android.util.Log;
 import android.widget.Toast;
 
 import com.alexbaryzhikov.tictactoe.agents.Agent;
@@ -12,7 +11,6 @@ import java.lang.ref.WeakReference;
 
 public class GameController {
 
-  private static final String TAG = "GameController";
   private static WeakReference<GameView> view;
   private static Agent agent;
   private static AgentAsyncTask agentAsyncTask;
@@ -38,7 +36,6 @@ public class GameController {
     if (view.get() == null) {
       throw new RuntimeException("GameView reference is empty");
     }
-    Log.d(TAG, "Starting a new game");
     // Create agent
     if (agent == null) {
       agent = new MctsPAgent(view.get().getAssets());
@@ -84,7 +81,6 @@ public class GameController {
       Toast.makeText((Context) view.get(), R.string.start_game, Toast.LENGTH_SHORT).show();
     } else if (Game.state.getPlayer() == 1) {  // player's turn
       if (Game.isValidAction(position)) {
-        Log.d(TAG, "Player move: " + position);
         // Make a move
         Game.state = Game.state.getNextState(position);
         view.get().onGameStateUpdated();
@@ -108,7 +104,6 @@ public class GameController {
   public static void onAgentClick(int position) {
     endAgentTask();
     if (Game.isValidAction(position)) {
-      Log.d(TAG, "Agent move: " + position);
       // Make a move
       Game.state = Game.state.getNextState(position);
       view.get().onGameStateUpdated();
@@ -116,8 +111,6 @@ public class GameController {
         int winner = Game.state.getValue() == -1 ? -1 : 0;
         displayWinner(winner);
       }
-    } else {
-      Log.e(TAG, "Invalid agent move: " + position);
     }
   }
 
@@ -137,18 +130,12 @@ public class GameController {
     switch (winner) {
       case 1:
         Toast.makeText((Context) view.get(), R.string.player_a_win, Toast.LENGTH_LONG).show();
-        Log.d(TAG, "Player wins");
         break;
       case -1:
         Toast.makeText((Context) view.get(), R.string.player_b_win, Toast.LENGTH_LONG).show();
-        Log.d(TAG, "Agent wins");
         break;
       case 0:
         Toast.makeText((Context) view.get(), R.string.game_draw, Toast.LENGTH_LONG).show();
-        Log.d(TAG, "Game draw");
-        break;
-      default:
-        Log.e(TAG, "Unknown player");
         break;
     }
   }

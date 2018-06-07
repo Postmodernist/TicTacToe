@@ -2,7 +2,6 @@ package com.alexbaryzhikov.tictactoe;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
@@ -15,7 +14,6 @@ import java.lang.ref.WeakReference;
  */
 public class BoardAdapter extends BaseAdapter {
 
-  private static final String TAG = "BoardAdapter";
   private WeakReference<Context> context;
   private GridView boardGrid;
   private Drawable circle0;
@@ -89,9 +87,6 @@ public class BoardAdapter extends BaseAdapter {
         break;
       case -1:
         convertView.setBackground(circleB);
-        break;
-      default:
-        Log.e(TAG, "Unknown square value: " + square);
         break;
     }
     return convertView;

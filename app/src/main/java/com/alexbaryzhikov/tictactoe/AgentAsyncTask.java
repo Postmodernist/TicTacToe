@@ -7,7 +7,6 @@ import com.alexbaryzhikov.tictactoe.agents.Agent;
 
 public class AgentAsyncTask extends AsyncTask<Void, Void, Integer> {
 
-  private static final String TAG = "AgentAsyncTask";
   private Agent agent;
 
   AgentAsyncTask(Agent agent) {
@@ -22,10 +21,5 @@ public class AgentAsyncTask extends AsyncTask<Void, Void, Integer> {
   @Override
   protected void onPostExecute(Integer position) {
     GameController.onAgentClick(position);
-  }
-
-  @Override
-  protected void onCancelled() {
-    Log.d(TAG, "Agent task is cancelled");
   }
 }
