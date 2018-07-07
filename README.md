@@ -4,9 +4,7 @@ This project is built around NN-based agent playing an enhanced version of tic-t
 
 The project began as a classic tic-tac-toe game played against MCTS agent, but that wasn't fun and
 I had to make the game more complex. As a result I came up with the game which has the same basic
-idea: the first player to get 4 pieces in a line wins. The board size is 7x7 gives some space for different strategies and is learnable within reasonable time frame using a single GPU.
-
-I replaced Classic MCTS with probabilistic version based on NN, which is responsible for evaluating
+idea: the first player to get 4 pieces in a line wins. The board size is 7x7. It has space for different strategies and is learnable within reasonable time frame using a single GPU. I replaced classic MCTS with probabilistic version based on NN, which is responsible for evaluating
 board states and predicting moves.
 
 The model was trained in [BoardAI] project and used here only for inference.
